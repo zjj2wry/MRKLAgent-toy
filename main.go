@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/callbacks"
@@ -70,7 +69,7 @@ func (t TerminalTool) Call(ctx context.Context, input string) (string, error) {
 		t.CallbacksHandler.HandleToolEnd(ctx, result)
 	}
 
-	return strings.TrimSpace(result), nil
+	return fmt.Sprintf(`The command '%s' executed successfully, and the output is '%s'.`, input, result), nil
 }
 
 // Option is a function that configures the TerminalTool.
@@ -98,15 +97,14 @@ func run() error {
 	executor, err := agents.Initialize(
 		llm,
 		[]tools.Tool{terminal},
-		agents.ZeroShotReactDescription,
+		agents.ConversationalReactDescription,
 		agents.WithMaxIterations(3),
 		agents.WithReturnIntermediateSteps(),
 	)
 	if err != nil {
 		return err
 	}
-	question := `Write a Golang hello world program in the current directory of my computer, and then execute it.
-	You can not write programs on my computer, considering using tools.`
+	question := `Write a Golang hello world program in the current directory of my computer, and then execute it.`
 	answer, err := chains.Run(context.Background(), executor, question)
 	fmt.Println(answer)
 	return err
